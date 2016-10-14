@@ -11,7 +11,7 @@ INSERT IGNORE INTO unexpired_certificate SELECT
     WHERE
          NOW() BETWEEN `certificate`.`notBefore` AND `certificate`.`notAfter`;
 
-DELETE FROM unexpired_certificate WHERE `notAfter` < NOW();
+DELETE FROM unexpired_certificate WHERE `notAfter` < date(NOW());
 COMMIT;
 
 START TRANSACTION READ WRITE;
@@ -33,7 +33,7 @@ INSERT IGNORE INTO le_current_certificate SELECT
                 (`issuer`.`authorityKeyID` = 'qEpqYwR93brm0Tm3pkVl7/Oo7KE=')))
             AND (NOW() BETWEEN `unexpired_certificate`.`notBefore` AND `unexpired_certificate`.`notAfter`));
 
-DELETE FROM le_current_certificate WHERE `notAfter` < NOW();
+DELETE FROM le_current_certificate WHERE `notAfter` < date(NOW());
 COMMIT;
 
 START TRANSACTION READ WRITE;
