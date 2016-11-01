@@ -1,3 +1,6 @@
+DROP VIEW IF EXISTS `le_certificate`;
+DROP VIEW IF EXISTS `le_current_certificate`;
+
 CREATE VIEW `le_certificate` AS
     SELECT 
         `certificate`.`certID` AS `certID`,
@@ -16,34 +19,23 @@ CREATE VIEW `le_certificate` AS
             WHERE
                 (`issuer`.`authorityKeyId` = 'qEpqYwR93brm0Tm3pkVl7/Oo7KE=')));
 
-CREATE VIEW `unexpired_certificate` AS
-    SELECT 
-        `certificate`.`certID` AS `certID`,
-        `certificate`.`serial` AS `serial`,
-        `certificate`.`issuerID` AS `issuerID`,
-        `certificate`.`subject` AS `subject`,
-        `certificate`.`notBefore` AS `notBefore`,
-        `certificate`.`notAfter` AS `notAfter`
-    FROM
-        `certificate`
-    WHERE
-        (NOW() BETWEEN `certificate`.`notBefore` AND `certificate`.`notAfter`);
-        
 CREATE VIEW `le_current_certificate` AS
     SELECT 
-        `certificate`.`certID` AS `certID`,
+        `unexpired_certificate`.`certID` AS `certID`,
         `certificate`.`serial` AS `serial`,
-        `certificate`.`issuerID` AS `issuerID`,
+        `unexpired_certificate`.`issuerID` AS `issuerID`,
         `certificate`.`subject` AS `subject`,
-        `certificate`.`notBefore` AS `notBefore`,
-        `certificate`.`notAfter` AS `notAfter`
+        `unexpired_certificate`.`notBefore` AS `notBefore`,
+        `unexpired_certificate`.`notAfter` AS `notAfter`
     FROM
+        `unexpired_certificate`
+             NATURAL JOIN
         `certificate`
     WHERE
-        ((`certificate`.`issuerID` = (SELECT 
+        ((`unexpired_certificate`.`issuerID` = (SELECT 
                 `issuer`.`issuerID`
             FROM
                 `issuer`
             WHERE
-                (`issuer`.`authorityKeyId` = 'qEpqYwR93brm0Tm3pkVl7/Oo7KE=')))
-AND (NOW() BETWEEN `certificate`.`notBefore` AND `certificate`.`notAfter`));
+                (`issuer`.`authorityKeyId` = 'qEpqYwR93brm0Tm3pkVl7/Oo7KE='))));
+                
