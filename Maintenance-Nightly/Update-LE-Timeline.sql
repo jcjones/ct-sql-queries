@@ -6,10 +6,11 @@ INSERT IGNORE INTO `lestats`.`le_timeline` SET `datestamp`=@datestamp;
 COMMIT;
 
 START TRANSACTION READ WRITE;
-DELETE FROM unexpired_certificate WHERE `notAfter` < date(@datestamp);
-UPDATE `lestats`.`le_timeline` SET `certsIssued`=(SELECT COUNT(1) FROM `ctdb`.`le_current_certificate` WHERE `notBefore`=@datestamp),
-                         `certsActive`=(SELECT COUNT(1) FROM `ctdb`.`le_current_certificate`)
-                     WHERE `datestamp`=date(@datestamp);
+DELETE FROM unexpired_certificate WHERE `notAfter` < @datestamp;
+UPDATE `lestats`.`le_timeline` SET 
+    `certsIssued`=(SELECT COUNT(1) FROM `ctdb`.`le_current_certificate` WHERE date(`notBefore`)=@datestamp),
+    `certsActive`=(SELECT COUNT(1) FROM `ctdb`.`le_current_certificate`)
+  WHERE `datestamp`=@datestamp;
 COMMIT;
 
 START TRANSACTION READ WRITE;
@@ -24,6 +25,7 @@ INSERT IGNORE INTO `ctdb`.le_domain SELECT
     FROM `ctdb`.`le_current_certificate`
     NATURAL JOIN `cert_registereddomain`
     NATURAL JOIN `registereddomain`;
+
 UPDATE `lestats`.`le_timeline` SET `regDomainsActive`=(SELECT count(1) FROM `ctdb`.`le_domain`) WHERE `datestamp`=@datestamp;
 COMMIT;
 
@@ -38,5 +40,6 @@ INSERT IGNORE INTO `ctdb`.le_fqdn SELECT
     FROM `ctdb`.`le_current_certificate`
     NATURAL JOIN `cert_fqdn`
     NATURAL JOIN `fqdn`;
+
 UPDATE `lestats`.`le_timeline` SET `fqdnsActive`=(SELECT count(1) FROM `ctdb`.`le_fqdn`) WHERE `datestamp`=@datestamp;
 COMMIT;
